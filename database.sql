@@ -45,7 +45,9 @@ CREATE TABLE "Room_type"(
     "status" NVARCHAR(255) NULL,
 	"quantity" int not null,
 	"roomtype_img"  NVARCHAR(255) NOT NULL,
-	"descripsion" NVARCHAR(MAX) NOT NULL,
+	"title_descripsion" NVARCHAR(255) NOT NULL,
+    "roomtype_descripsion" NVARCHAR(MAX) NOT NULL,
+	"content_descripsion" NVARCHAR(MAX) NOT NULL,
 	"room_type_price" FLOAT NOT NULL,
     CONSTRAINT "room_type_room_type_id_primary" PRIMARY KEY("room_type_id")
 );
@@ -54,19 +56,16 @@ CREATE TABLE "Room"(
     "room_id" INT IDENTITY(1,1) NOT NULL,
     "room_type_id" INT NOT NULL,
     "room_name" NVARCHAR(255) NOT NULL,
-	"title_descripsion" NVARCHAR(255) NOT NULL,
-    "descripsion" NVARCHAR(MAX) NOT NULL,
-	"content_descripsion" NVARCHAR(MAX) NOT NULL,
-    "current_price" FLOAT NOT NULL,
-    "status" NVARCHAR(255) NULL,
+	
+    "room_status" NVARCHAR(255) NULL,
     CONSTRAINT "room_room_id_primary" PRIMARY KEY("room_id"),
     CONSTRAINT "room_room_type_id_foreign" FOREIGN KEY("room_type_id") REFERENCES "Room_type"("room_type_id")
 );
 
-CREATE TABLE "Room_Detail"(
-    "room_id" INT,
+CREATE TABLE "Room_Images"(
+    "room_type_id" INT,
     "img" NVARCHAR(255),
-    CONSTRAINT "room_detail_room_id_foreign" FOREIGN KEY("room_id") REFERENCES "Room"("room_id")
+    CONSTRAINT "room_images_room_type_id_foreign" FOREIGN KEY("room_type_id") REFERENCES "Room_type"("room_type_id")
 );
 
 CREATE TABLE "Service"(
@@ -175,7 +174,7 @@ CREATE TABLE "Reply"(
 );
 
 CREATE TABLE "Room_reserved"(
-    "reservation_id" INT IDENTITY(1,1) NOT NULL,
+    "reservation_id" INT NOT NULL,
     "room_id" INT NOT NULL,
     "price" FLOAT NOT NULL,
     CONSTRAINT "room_reserved_reservation_id_foreign" FOREIGN KEY("reservation_id") REFERENCES "Reservation"("reservation_id"),
@@ -192,6 +191,7 @@ CREATE TABLE "Room_service"(
 CREATE TABLE "Review"(
     "review_id" INT IDENTITY(1,1) NOT NULL,
     "customer_id" INT NOT NULL,
+    "staff_id" INT NOT NULL,
 	"room_id" INT NOT NULL,
     "description" NVARCHAR(MAX) NOT NULL,
     "status" NVARCHAR(255) NOT NULL,
@@ -215,9 +215,12 @@ CREATE TABLE "Room_Convenient" (
     CONSTRAINT "room_convenient_room_id_foreign" FOREIGN KEY ("room_id") REFERENCES "Room"("room_id"),
     CONSTRAINT "room_convenient_convenient_id_foreign" FOREIGN KEY ("convenient_id") REFERENCES "Convenient"("convenient_id")
 );
-
---------------------------------------------------------------------
-
+CREATE TABLE "Service_reserved"(
+	"reservation_id" INT NOT NULL,
+    "service_id" INT NOT NULL,
+    CONSTRAINT "service_reserved_reservation_id_foreign" FOREIGN KEY("reservation_id") REFERENCES "Reservation"("reservation_id"),
+    CONSTRAINT "service_reserved_service_id_foreign" FOREIGN KEY("service_id") REFERENCES "Service"("service_id")
+);
 --------------------------------------------------------------------
 INSERT INTO "Role" ( "type")
 VALUES
@@ -292,5 +295,101 @@ delete from Room_service where service_id = 1
 ALTER TABLE Review DROP CONSTRAINT review_staff_id_foreign;
 ALTER TABLE Review DROP COLUMN staff_id;
 
+INSERT INTO "Room_type" (
+    "type_name",
+    "status",
+    "quantity",
+    "roomtype_img",
+    "descripsion",
+    "room_type_price"
+) VALUES (
+    N'Loại Deluxe', -- type_name
+    N'Kích hoạt', -- status
+    10, -- quantity
+    N'deluxe.jpg', -- roomtype_img
+    N'Mô tả chi tiết về loại phòng Deluxe', -- descripsion
+    150.0 -- room_type_price
+);
 
 
+INSERT INTO "Room" (
+    "room_type_id",
+    "room_name",
+    "title_descripsion",
+    "room_descripsion",
+    "content_descripsion",
+    "current_price",
+    "room_status"
+) VALUES (
+    1, -- room_type_id (giả sử ID của loại Deluxe là 1)
+    N'Phòng 101', -- room_name
+    N'Tiêu đề phòng 101', -- title_descripsion
+    N'Mô tả ngắn về phòng 101', -- room_descripsion
+    N'Mô tả chi tiết về phòng 101', -- content_descripsion
+    160.0, -- current_price
+    N'Kích hoạt' -- room_status
+);
+
+
+UPDATE "Room"
+SET "room_status" = N'active'
+WHERE "room_name" = N'Phòng 101';
+
+
+------------------------------------------------------------------------------------------------------------
+INSERT INTO "Room_type" ("type_name", "status", "quantity", "roomtype_img", "descripsion", "room_type_price") VALUES
+('Single', 'Available', 10, 'single.jpg', 'Single room description', 100.00),
+('Double', 'Available', 20, 'double.jpg', 'Double room description', 150.00),
+('Suite', 'Unavailable', 5, 'suite.jpg', 'Suite room description', 300.00),
+('Deluxe', 'Available', 8, 'deluxe.jpg', 'Deluxe room description', 250.00),
+('Family', 'Available', 15, 'family.jpg', 'Family room description', 200.00),
+('Executive', 'Unavailable', 4, 'executive.jpg', 'Executive room description', 400.00),
+('Presidential', 'Available', 2, 'presidential.jpg', 'Presidential room description', 500.00),
+('Budget', 'Available', 25, 'budget.jpg', 'Budget room description', 80.00),
+('Standard', 'Available', 30, 'standard.jpg', 'Standard room description', 120.00),
+('Penthouse', 'Unavailable', 1, 'penthouse.jpg', 'Penthouse room description', 1000.00);
+-- Insert data into Room
+INSERT INTO "Room" ("room_type_id", "room_name", "title_descripsion", "room_descripsion", "content_descripsion", "current_price", "room_status") VALUES
+(1, '101', 'Room 101', 'Description of Room 101', 'Content for Room 101', 100.00, 'Available'),
+(2, '102', 'Room 102', 'Description of Room 102', 'Content for Room 102', 150.00, 'Occupied'),
+(3, '103', 'Room 103', 'Description of Room 103', 'Content for Room 103', 300.00, 'Available'),
+(4, '104', 'Room 104', 'Description of Room 104', 'Content for Room 104', 250.00, 'Available'),
+(5, '105', 'Room 105', 'Description of Room 105', 'Content for Room 105', 200.00, 'Occupied'),
+(6, '106', 'Room 106', 'Description of Room 106', 'Content for Room 106', 400.00, 'Available'),
+(7, '107', 'Room 107', 'Description of Room 107', 'Content for Room 107', 500.00, 'Available'),
+(8, '108', 'Room 108', 'Description of Room 108', 'Content for Room 108', 80.00, 'Available'),
+(9, '109', 'Room 109', 'Description of Room 109', 'Content for Room 109', 120.00, 'Occupied'),
+(10, '110', 'Room 110', 'Description of Room 110', 'Content for Room 110', 1000.00, 'Available');
+
+INSERT INTO "Service" ("name_service", "title_service", "description", "img", "status", "service_price") VALUES
+('Room Cleaning', 'Daily Cleaning', 'Daily room cleaning service', 'cleaning.jpg', 'Active', 20.00),
+('Breakfast', 'Morning Breakfast', 'Complimentary breakfast service', 'breakfast.jpg', 'Active', 10.00),
+('Spa', 'Relaxation Spa', 'Full body spa service', 'spa.jpg', 'Inactive', 50.00),
+('Gym', 'Gym Access', 'Access to hotel gym facilities', 'gym.jpg', 'Active', 15.00),
+('Laundry', 'Laundry Service', 'Laundry and dry cleaning', 'laundry.jpg', 'Active', 25.00),
+('Parking', 'Valet Parking', 'Valet parking service', 'parking.jpg', 'Active', 5.00),
+('WiFi', 'High-Speed WiFi', 'High-speed internet access', 'wifi.jpg', 'Active', 0.00),
+('Shuttle', 'Airport Shuttle', 'Shuttle service to and from airport', 'shuttle.jpg', 'Active', 30.00),
+('Swimming Pool', 'Pool Access', 'Access to swimming pool', 'pool.jpg', 'Active', 10.00),
+('Restaurant', 'Dining Service', 'In-house restaurant service', 'restaurant.jpg', 'Inactive', 40.00);
+-- Insert data into Event_id
+INSERT INTO "Event_id" ("title_event", "img", "start_date", "end_date", "detail", "discount_percent", "description", "status") VALUES
+('Summer Sale', 'summer.jpg', '2023-06-01', '2023-06-30', 'Summer sale details', 10.0, 'Summer sale description', 'Active'),
+('Christmas Special', 'christmas.jpg', '2023-12-01', '2023-12-25', 'Christmas special details', 20.0, 'Christmas special description', 'Active'),
+('New Year Bash', 'newyear.jpg', '2023-12-31', '2024-01-01', 'New Year bash details', 15.0, 'New Year bash description', 'Active'),
+('Black Friday', 'blackfriday.jpg', '2023-11-24', '2023-11-24', 'Black Friday details', 25.0, 'Black Friday description', 'Active'),
+('Easter Celebration', 'easter.jpg', '2024-04-01', '2024-04-02', 'Easter celebration details', 10.0, 'Easter celebration description', 'Active'),
+('Independence', 'independence.jpg', '2024-07-04', '2024-07-04', 'Independence Day details', 15.0, 'Independence Day description', 'Active')
+-- Insert data into News
+INSERT INTO "News" ("staff_id", "img", "title", "create_date", "desccription", "status") VALUES
+(1, 'news1.jpg', 'Hotel Renovation', '2023-01-15', 'Details about hotel renovation', 'Published'),
+(2, 'news2.jpg', 'New Chef', '2023-02-20', 'Introducing our new chef', 'Published'),
+(3, 'news3.jpg', 'Summer Activities', '2023-06-10', 'Upcoming summer activities', 'Published'),
+(4, 'news4.jpg', 'Holiday Discounts', '2023-12-05', 'Special holiday discounts', 'Draft'),
+(5, 'news5.jpg', 'Fitness Center', '2023-03-25', 'New fitness center opening', 'Published'),
+(6, 'news6.jpg', 'Guest Testimonials', '2023-05-18', 'Read our guest testimonials', 'Draft'),
+(7, 'news7.jpg', 'COVID-19 Measures', '2023-07-30', 'Our COVID-19 safety measures', 'Published'),
+(8, 'news8.jpg', 'Environmental Initiatives', '2023-09-12', 'Our green initiatives', 'Published'),
+(9, 'news9.jpg', 'Room Upgrades', '2023-11-07', 'Details on room upgrades', 'Draft'),
+(10, 'news10.jpg', 'Holiday Events', '2023-12-20', 'Upcoming holiday events', 'Published');
+SELECT service_id FROM Room_service WHERE room_type_id = 2
